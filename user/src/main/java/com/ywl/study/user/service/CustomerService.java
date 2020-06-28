@@ -39,7 +39,9 @@ public class CustomerService {
             //检查余额
             Customer customer = customerRepository.findOne(dto.getCustomerId());
             if (customer.getDeposit() < dto.getAmount()) {//余额不足，解锁
-
+                LOG.warn("Not enough deposit.");
+                dto.setStatus("NOT_ENOUGH_DEPOSIT");
+                jmsTemplate.convertAndSend("order:ticket_error",dto);
                 return;
             }
             payinfo = new PayInfo();

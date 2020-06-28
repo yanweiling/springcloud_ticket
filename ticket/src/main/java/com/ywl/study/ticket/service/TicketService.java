@@ -30,10 +30,12 @@ public class TicketService {
         if(lockCount==1){
             LOG.info("锁票成功");
             dto.setStatus("TICKET_LOCKED");
-            jmsTemplate.setMessageConverter(new UserConvert());
             jmsTemplate.convertAndSend("order:locked",dto);
 
         }else{
+            LOG.info("锁票失败");
+            dto.setStatus("TICKET_LOCK_FAIL");
+            jmsTemplate.convertAndSend("order:fail",dto);
 
         }
     }
@@ -56,6 +58,26 @@ public class TicketService {
         jmsTemplate.convertAndSend("order:finish",dto);
     }
 
+
+    /**
+     * 票解锁+票转移后撤销
+     * @param dto
+     */
+    @Transactional
+    @JmsListener(destination = "order:ticket_error",containerFactory = "msgFactory")
+    public void handleTickeError(OrderDTO dto){
+        LOG.info("Get new Order for unlock {}",dto);
+        int count=ticketRepository.unlockTicket(dto.getCustomerId(),dto.getTicketNum());
+        if(count==0){
+            LOG.info("Ticket already unlock:{}",dto);
+        }
+        count=ticketRepository.unmoveTicket(dto.getCustomerId(),dto.getTicketNum());
+        if(count==0){
+            LOG.info("Ticket already unmoved,or not moved!");
+        }
+        jmsTemplate.convertAndSend("order:fail",dto);
+
+    }
     /*在10s的时间内发送两个请求，一个请求参数
     {
     "customerId": 1,

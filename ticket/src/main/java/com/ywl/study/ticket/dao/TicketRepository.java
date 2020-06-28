@@ -26,9 +26,15 @@ public interface TicketRepository extends JpaRepository<Ticket, Long> {
     int moveTicket(Long customerId,Long ticketNum);
 
     @Modifying
+    @Query("UPDATE Ticket SET owner=?1 WHERE owner=?1 AND ticketNum=?2")
+    int unmoveTicket(Long customerId,Long ticketNum);
+
+    @Modifying
     @Query("UPDATE Ticket SET lockUser=?1 WHERE lockUser IS NULL AND ticketNum=?2")
     int lockTicket(Long customerId,Long ticketNum);
 
-
+    @Modifying
+    @Query("UPDATE Ticket SET lockUser=NULL WHERE lockUser=?1 AND ticketNum=?2")
+    int unlockTicket(Long customerId,Long ticketNum);
 
 }

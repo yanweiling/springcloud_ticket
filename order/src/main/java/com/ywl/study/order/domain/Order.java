@@ -18,6 +18,7 @@ public class Order {
     @GeneratedValue
     private Long id;
 
+    /*用来幂等性判断*/
     @Column
     private String uuid;
 
@@ -28,10 +29,11 @@ public class Order {
     @Column
     private String title;
 
-    /*标志订单是买的哪张票*/
+    /*票号*/
     @Column(name = "ticket_num")
     private Long ticketNum;
 
+    /*金额*/
     @Column
     private int amount;
     /*订单状态*/
